@@ -1,6 +1,7 @@
 use std::{error::Error, io};
 
 pub use app::App;
+use app::CurrentScreen;
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
     execute,
@@ -44,6 +45,9 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
             }
             match key.code {
                 KeyCode::Char('q') => return Ok(true),
+                KeyCode::Char('s') => app.current_screen = CurrentScreen::SelectDevice,
+                KeyCode::Char('p') => app.current_screen = CurrentScreen::ColorPicker,
+                KeyCode::Esc => app.current_screen = CurrentScreen::Main,
                 _ => {}
             }
         }

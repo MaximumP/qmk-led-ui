@@ -3,6 +3,7 @@ use hidapi::{HidApi, HidDevice};
 // const VENDOR_ID: u16 = 0xfeed;
 // const PRODUCT_ID: u16 = 0x0042;
 
+#[derive(PartialEq)]
 pub enum CurrentScreen {
     Main,
     SelectDevice,

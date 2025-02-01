@@ -12,9 +12,16 @@ pub enum CurrentScreen {
     LedModesList,
 }
 
+pub struct RGBColor {
+    pub red: u8,
+    pub green: u8,
+    pub blue: u8,
+}
+
 pub struct App {
     pub current_screen: CurrentScreen,
     pub device: Option<HidDevice>,
+    pub rgb_color: RGBColor,
     api: HidApi,
 }
 
@@ -24,6 +31,11 @@ impl App {
             current_screen: CurrentScreen::Main,
             device: None,
             api: HidApi::new().expect("Could not initialize HidApi"),
+            rgb_color: RGBColor {
+                red: 0u8,
+                green: 0u8,
+                blue: 0u8,
+            },
         }
     }
 

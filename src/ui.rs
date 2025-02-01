@@ -19,26 +19,28 @@ fn render_title(frame: &mut Frame, rect: &Rect) {
 }
 
 fn render_color_picker(frame: &mut Frame, rect: &Rect, app: &App) {
-    let red: u8 = 90;
-    let green: u8 = 10;
-    let blue: u8 = 185;
-    let average: u16 = (red as u16 + green as u16 + blue as u16) / 3;
+    let average: u16 =
+        (app.rgb_color.red as u16 + app.rgb_color.green as u16 + app.rgb_color.blue as u16) / 3;
     let red_bar = Bar::default()
-        .value(red.into())
+        .value(app.rgb_color.red.into())
         .text_value(String::from("Red"))
         .style(Style::new().fg(Color::Red));
     let green_bar = Bar::default()
-        .value(green.into())
+        .value(app.rgb_color.green.into())
         .text_value(String::from("Green"))
         .style(Style::new().fg(Color::Green));
     let blue_bar = Bar::default()
-        .value(blue.into())
+        .value(app.rgb_color.blue.into())
         .text_value(String::from("Blue"))
         .style(Style::new().fg(Color::Blue));
     let result_color = Bar::default()
         .value(average.into())
         .text_value(String::from("Result"))
-        .style(Style::new().fg(Color::Rgb(red, green, blue)));
+        .style(Style::new().fg(Color::Rgb(
+            app.rgb_color.red,
+            app.rgb_color.green,
+            app.rgb_color.blue,
+        )));
 
     let color_picker_title = Line::from("Color Picker");
     let mut block = Block::default()
@@ -56,7 +58,7 @@ fn render_color_picker(frame: &mut Frame, rect: &Rect, app: &App) {
     frame.render_widget(color_bar_chart, *rect);
 }
 
-pub fn render_device_picker(frame: &mut Frame, rect: &Rect, app: &App) {
+fn render_device_picker(frame: &mut Frame, rect: &Rect, app: &App) {
     let mut list_items = Vec::<ListItem>::new();
     for device in app.devices() {
         let manufacturer = match device.manufacturer_string() {
@@ -81,6 +83,41 @@ pub fn render_device_picker(frame: &mut Frame, rect: &Rect, app: &App) {
     }
     let device_list = List::new(list_items).block(block);
     frame.render_widget(device_list, *rect);
+}
+
+fn render_key_hint(frame: &mut Frame, rect: &Rect, app: &App) {
+    let quit = Span::styled("(q) to quit", Style::default().fg(Color::Red));
+    let select = Span::styled("(s) select device", Style::default().fg(Color::Green));
+    let pick = Span::styled("(p) pick color", Style::default().fg(Color::Green));
+    let main = Span::styled("(ESC) main", Style::default().fg(Color::Green));
+    let line: Line = match app.current_screen {
+        CurrentScreen::Main => {
+            let spans = vec![quit, select, pick];
+            Line::from(spans)
+        }
+        CurrentScreen::ColorPicker => {
+            let spans = vec![
+                quit,
+                select,
+                main,
+                Span::styled("(r) Red", Style::default().fg(Color::Red)),
+                Span::styled("(g) Green", Style::default().fg(Color::Green)),
+                Span::styled("(b) Blue", Style::default().fg(Color::Blue)),
+            ];
+            Line::from(spans)
+        }
+        CurrentScreen::SelectDevice => {
+            let spans = vec![quit, pick, main];
+            Line::from(spans)
+        }
+        CurrentScreen::LedModesList => Line::from(Span::default().content("todo")),
+        CurrentScreen::DeviceInfo => Line::from(Span::default().content("todo")),
+    };
+
+    let paragraph = Paragraph::new(line)
+        .block(Block::default().borders(Borders::ALL))
+        .centered();
+    frame.render_widget(paragraph, *rect);
 }
 
 pub fn ui(frame: &mut Frame, app: &App) {
@@ -136,14 +173,5 @@ pub fn ui(frame: &mut Frame, app: &App) {
     let hello_world = Line::from("Hello world");
     frame.render_widget(hello_world, right);
 
-    let key_hint = {
-        match app.current_screen {
-            _ => Span::styled("(q) to quit", Style::default().fg(Color::Red)),
-        }
-    };
-
-    let footer = Paragraph::new(Line::from(key_hint))
-        .block(Block::default().borders(Borders::ALL))
-        .centered();
-    frame.render_widget(footer, bottom);
+    render_key_hint(frame, &bottom, app);
 }
